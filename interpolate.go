@@ -2,6 +2,7 @@ package dbr
 
 import (
 	"database/sql/driver"
+	"math/big"
 	"reflect"
 	"strconv"
 	"strings"
@@ -124,6 +125,13 @@ func (i *interpolator) encodePlaceholder(value interface{}) error {
 			i.WriteString(i.EncodeTime(v.Interface().(time.Time)))
 			return nil
 		}
+
+		if v.Type() == reflect.TypeOf(big.Int{}) {
+			v1 := v.Interface().(big.Int)
+			i.WriteString(v1.String())
+			return nil
+		}
+
 	case reflect.Slice:
 		if v.Type().Elem().Kind() == reflect.Uint8 {
 			// []byte
