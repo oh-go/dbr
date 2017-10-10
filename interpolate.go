@@ -2,12 +2,15 @@ package dbr
 
 import (
 	"database/sql/driver"
-	"math/big"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 )
+
+type Stringable interface {
+	String() string
+}
 
 type interpolator struct {
 	Buffer
@@ -124,14 +127,13 @@ func (i *interpolator) encodePlaceholder(value interface{}) error {
 		if v.Type() == reflect.TypeOf(time.Time{}) {
 			i.WriteString(i.EncodeTime(v.Interface().(time.Time)))
 			return nil
+		} else {
+			v1, ok := value.(Stringable)
+			if ok {
+				i.WriteString(i.EncodeString(v1.String()))
+				return nil
+			}
 		}
-
-		if v.Type() == reflect.TypeOf(big.Int{}) {
-			v1 := v.Interface().(big.Int)
-			i.WriteString(v1.String())
-			return nil
-		}
-
 	case reflect.Slice:
 		if v.Type().Elem().Kind() == reflect.Uint8 {
 			// []byte
